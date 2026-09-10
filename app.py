@@ -104,7 +104,7 @@ MATERIAS_PRIMAS_VALIDAS = [
 
 ENZIMAS_VALIDAS = [
     "alcalase", "flavourzyme", "bromelina", "papaina", "papaína",
-    "pepsina", "tripsina", "neutrase", "protamex",
+    "pepsina", "tripsina", "neutrase", "protamex", "protana uboost",
     "quimotripsina", "subtilisina",
 ]
 
@@ -151,6 +151,113 @@ def coincide_publico_objetivo(texto: str) -> bool:
     )
 
 
+# Trayectoria real del TFG de Ander (Basque Culinary Center / NotCo, 2023): el trial score del
+# Toolbox AI subió 0.40 -> 0.60 -> ~0.78 a lo largo de 3 batches iterativos. Solo se activa con
+# el easter egg exacto; el resto de combinaciones válidas usa una trayectoria ficticia (abajo).
+TRAYECTORIA_REAL_TFG = [
+    {
+        "titulo": "Batch 1 — Exploración inicial",
+        "score": 0.40,
+        "lectura": "mejor lectura cruda ≈ 68 mg/g",
+        "insight": "Resultados dispersos: el equipo identifica que la enzima es la variable que más pesa.",
+    },
+    {
+        "titulo": "Batch 2 — La enzima como palanca",
+        "score": 0.60,
+        "lectura": "mejora sostenida en las muestras evaluadas",
+        "insight": "Se maximiza la dosis de enzima y se varía el tiempo de activación: el trial score sube de 0.40 a 0.60.",
+    },
+    {
+        "titulo": "Batch 3 — Validación",
+        "score": 0.78,
+        "lectura": "mejor muestra B3E0 ≈ 73 (mg/g, tal como consta en el registro original — el objetivo del proyecto era 80,000 µg/g)",
+        "insight": "El toolbox logró optimizar el proceso con una tendencia positiva y progresiva.",
+    },
+]
+
+INSIGHTS_EXPLORACION = [
+    "Resultados dispersos: todavía no hay una variable dominante clara.",
+    "Primeras corridas erráticas, útiles para acotar el rango de búsqueda.",
+    "El modelo identifica candidatos prometedores entre el ruido inicial.",
+]
+INSIGHTS_PALANCA = [
+    "Se aísla la variable que más pesa y se ajusta su dosis.",
+    "El modelo prioriza la variable de mayor impacto y descarta el resto del ruido.",
+    "Ajustando la variable clave, el trial score empieza a subir con claridad.",
+]
+INSIGHTS_CONVERGENCIA = [
+    "Ajuste fino final: la curva se estabiliza cerca del objetivo.",
+    "La tendencia se vuelve positiva y progresiva, lista para el ensayo físico.",
+    "El modelo converge a una combinación que justifica el trial físico.",
+]
+
+
+def generar_trayectoria_ficticia(materia_prima: str, enzima: str) -> list[dict]:
+    """Trayectoria de 3 batches, seedeada, que siempre converge a un score aprobatorio."""
+    score1 = random.uniform(0.25, 0.45)
+    score2 = min(score1 + random.uniform(0.15, 0.30), 0.94)
+    score3 = min(max(score2 + random.uniform(0.10, 0.25), 0.75), 0.97)
+    lecturas = [random.randint(15, 40), random.randint(45, 65), random.randint(68, 82)]
+    return [
+        {
+            "titulo": "Batch 1 — Exploración inicial",
+            "score": score1,
+            "lectura": f"mejor lectura cruda ≈ {lecturas[0]} mg/g",
+            "insight": random.choice(INSIGHTS_EXPLORACION),
+        },
+        {
+            "titulo": "Batch 2 — Se aísla la palanca",
+            "score": score2,
+            "lectura": f"mejor lectura cruda ≈ {lecturas[1]} mg/g",
+            "insight": random.choice(INSIGHTS_PALANCA),
+        },
+        {
+            "titulo": "Batch 3 — Validación",
+            "score": score3,
+            "lectura": f"mejor lectura cruda ≈ {lecturas[2]} mg/g",
+            "insight": random.choice(INSIGHTS_CONVERGENCIA),
+        },
+    ]
+
+
+def generar_trayectoria_batches(materia_prima: str, enzima: str, easter_egg: bool) -> list[dict]:
+    if easter_egg:
+        return TRAYECTORIA_REAL_TFG
+    return generar_trayectoria_ficticia(materia_prima, enzima)
+
+
+# Datos para el Tab 2: "Base de datos" pasa de ser aleatoria a ser una elección del usuario.
+BASES_DE_DATOS = ["PostgreSQL", "MongoDB", "PostgreSQL + Redis", "Supabase"]
+
+
+def generar_pipeline_ia(concepto: str, publico: str, stack: str, db: str) -> list[str]:
+    n_historias = random.randint(6, 14)
+    n_colores = random.randint(3, 6)
+    n_servicios = random.randint(3, 8)
+    n_tests = random.randint(40, 120)
+    n_unidades = random.randint(5, 12)
+    unidad = "pantallas" if stack == "Mobile-first" else "páginas"
+    return [
+        f"**Agente de Producto** — define {n_historias} historias de usuario priorizadas para "
+        f"{concepto.strip()} orientado a {publico.strip()}.",
+        f"**Agente de Diseño** — genera un sistema de diseño {stack.lower()} con {n_unidades} "
+        f"{unidad} y paleta de {n_colores} colores.",
+        f"**Agente de Backend** — levanta una arquitectura de {n_servicios} microservicios sobre {db}.",
+        f"**Agente de QA** — ejecuta {n_tests} casos de prueba automatizados, 0 errores críticos.",
+        "**Agente de Despliegue** — publica la aplicación en producción.",
+    ]
+
+
+def generar_cronograma_tradicional(concepto: str, publico: str) -> list[str]:
+    return [
+        "Semana 1 — Kickoff y relevamiento de requisitos.",
+        f"Semana 3 — Primer mockup de {concepto.strip()} para {publico.strip()}.",
+        "Semana 6 — Backend inicial, todavía sin integrar con el frontend.",
+        "Mes 2 — Primeras pruebas manuales; aparecen bugs de integración.",
+        "Mes 3 — Sigue en desarrollo.",
+    ]
+
+
 st.image(LOGO_PATH, width=110)
 st.title("Simulador de Evolución")
 st.caption("Del ensayo físico en el laboratorio a la orquestación de sistemas por IA.")
@@ -171,10 +278,12 @@ tab1, tab2 = st.tabs(["2022 — Lab NotCo", "Hoy — Orquestación de Agentes IA
 # ---------------------------------------------------------------------------
 with tab1:
     st.markdown(
-        "En 2022, NotCo utilizaba un modelo de IA para **predecir** qué combinaciones de "
-        "materia prima y enzima justificaban un ensayo en laboratorio físico, en la búsqueda "
-        "de extracción de sabor a carne (MSG) a partir de semillas — minimizando trials costosos."
+        "En 2022, un barrido manual de todas las combinaciones posibles de materia prima, enzima, "
+        "tiempo y dosis habría exigido **756 experimentos físicos**. El Toolbox AI de NotCo redujo "
+        "esa búsqueda a **3 batches iterativos** de entre 5 y 10 ensayos cada uno, con el trial "
+        "score subiendo batch a batch."
     )
+    st.caption("Uno de estos batches terminó publicado en una revista científica — seguí la dinámica para descubrir cuál.")
 
     col_a, col_b = st.columns(2)
     with col_a:
@@ -182,15 +291,15 @@ with tab1:
     with col_b:
         enzima = st.text_input("Enzima (ej. Alcalase)", key="enzima")
 
-    if st.button("Simular Trial Físico"):
+    if st.button("Iniciar optimización iterativa"):
         if not materia_prima.strip() or not enzima.strip():
-            st.warning("Completa ambos campos antes de simular el trial.")
+            st.warning("Completa ambos campos antes de iniciar la optimización.")
         elif not coincide_base_conocimiento(materia_prima, MATERIAS_PRIMAS_VALIDAS) or not coincide_base_conocimiento(
             enzima, ENZIMAS_VALIDAS
         ):
             st.error(
                 "El modelo no reconoce esta combinación en su base de conocimiento (semillas y "
-                "enzimas de hidrólisis proteica) y descarta el trial sin generar una predicción. "
+                "enzimas de hidrólisis proteica) y descarta la optimización sin generar batches. "
                 "Probá con un ejemplo real, como Cucurbita pepo + Alcalase."
             )
         else:
@@ -203,24 +312,40 @@ with tab1:
                 "flavourzyme",
             )
 
-            score = 0.91 if easter_egg else random.uniform(0.10, 0.99)
+            batches = generar_trayectoria_batches(materia_prima, enzima, easter_egg)
 
-            st.metric("Trial Score", f"{score:.2f}")
+            score_anterior = None
+            for batch in batches:
+                with st.container(border=True):
+                    st.markdown(f"**{batch['titulo']}**")
+                    delta = None if score_anterior is None else round(batch["score"] - score_anterior, 2)
+                    st.metric("Trial Score", f"{batch['score']:.2f}", delta=delta)
+                    st.caption(batch["lectura"])
+                    st.write(batch["insight"])
+                score_anterior = batch["score"]
+                time.sleep(0.9)
+
+            st.line_chart({"Trial Score": [b["score"] for b in batches]})
+
+            score_final = batches[-1]["score"]
+            if score_final >= 0.75:
+                st.success(
+                    "Ensayo aprobado. Tres batches bastaron para superar el umbral que hacía "
+                    "justificable enviar la mezcla al laboratorio físico."
+                )
+            else:
+                st.error(
+                    "El modelo descarta esta mezcla tras 3 batches: no justifica montar el ensayo "
+                    "físico.\n\n**Ahorro: $1,500 y 2 semanas de trabajo de laboratorio manual**"
+                )
 
             if easter_egg:
                 st.success(
-                    "**Batch #3 exitoso.** Esta combinación ya fue validada en laboratorio: "
-                    "extracción de MSG confirmada muy por encima del umbral objetivo."
-                )
-            elif score < 0.75:
-                st.error(
-                    "El modelo descarta esta mezcla: no justifica montar el ensayo físico.\n\n"
-                    "**Ahorro: $1,500 y 2 semanas de trabajo de laboratorio manual**"
-                )
-            else:
-                st.success(
-                    "Ensayo aprobado. La predicción de extracción de MSG supera los "
-                    "70,000 µg/g y justifica enviar esta mezcla al laboratorio físico."
+                    "**Este es el batch real.** El trabajo continuó y se publicó como "
+                    "*\"A metabolomic approach of AI-driven enzymatic digestion of pumpkin seed "
+                    "flour for producing umami metabolites\"*, International Journal of Gastronomy "
+                    "and Food Science, vol. 39 (marzo 2025), con Ander de la Hoz como primer autor. "
+                    "El paper publicado usó enzimas refinadas distintas a las de estos batches de 2023."
                 )
 
 # ---------------------------------------------------------------------------
@@ -228,18 +353,27 @@ with tab1:
 # ---------------------------------------------------------------------------
 with tab2:
     st.markdown(
-        "Hoy, ese mismo principio de eliminar el ensayo y error aplica al software: un enjambre "
-        "de agentes de IA reemplaza al equipo que antes tardaba meses en levantar un producto. "
-        "Cada agente reporta su avance en tiempo real."
+        "Ese mismo principio de comprimir la iteración, en vez de eliminarla, aplica hoy al "
+        "software: mientras un equipo tradicional avanza hito a hito, un enjambre de agentes de "
+        "IA construye la misma app en paralelo — y termina primero."
     )
 
-    col_c, col_d = st.columns(2)
-    with col_c:
-        concepto = st.text_input("Concepto de la App (ej. Tinder)", key="concepto")
-    with col_d:
-        publico = st.text_input("Público Objetivo (ej. Mascotas)", key="publico")
+    with st.form("orquestacion_form"):
+        col_c, col_d = st.columns(2)
+        with col_c:
+            concepto = st.text_input("Concepto de la App (ej. Tinder)", key="concepto")
+        with col_d:
+            publico = st.text_input("Público Objetivo (ej. Mascotas)", key="publico")
 
-    if st.button("Orquestar Agentes IA"):
+        col_g, col_h = st.columns(2)
+        with col_g:
+            stack_choice = st.radio("Enfoque", ["Web-first", "Mobile-first"], key="stack_choice")
+        with col_h:
+            db_choice = st.selectbox("Base de datos", BASES_DE_DATOS, key="db_choice")
+
+        enviado = st.form_submit_button("Lanzar orquestación")
+
+    if enviado:
         if not concepto.strip() or not publico.strip():
             st.warning("Completa ambos campos antes de orquestar los agentes.")
         elif not es_entrada_valida(concepto):
@@ -254,33 +388,31 @@ with tab2:
                 "Probá con un ejemplo real, como Mascotas o Estudiantes."
             )
         else:
-            seed_from_inputs(concepto, publico)
+            seed_from_inputs(concepto, publico, stack_choice, db_choice)
 
             dias_tradicional = random.randint(90, 200)
-            n_historias = random.randint(6, 14)
-            n_colores = random.randint(3, 6)
-            n_servicios = random.randint(3, 8)
-            base_datos = random.choice(["PostgreSQL", "MongoDB", "PostgreSQL + Redis", "Supabase"])
-            n_tests = random.randint(40, 120)
+            cronograma = generar_cronograma_tradicional(concepto, publico)
+            pipeline = generar_pipeline_ia(concepto, publico, stack_choice, db_choice)
 
-            with st.status("Orquestando agentes de IA...", expanded=True) as pipeline:
-                st.write(
-                    f"**Agente de Producto** — define {n_historias} historias de usuario "
-                    f"priorizadas para {concepto.strip()} orientado a {publico.strip()}."
-                )
-                time.sleep(0.5)
-                st.write(f"**Agente de Diseño** — genera un sistema de diseño con paleta de {n_colores} colores.")
-                time.sleep(0.5)
-                st.write(
-                    f"**Agente de Backend** — levanta una arquitectura de {n_servicios} "
-                    f"microservicios sobre {base_datos}."
-                )
-                time.sleep(0.5)
-                st.write(f"**Agente de QA** — ejecuta {n_tests} casos de prueba automatizados, 0 errores críticos.")
-                time.sleep(0.5)
-                st.write("**Agente de Despliegue** — publica la aplicación en producción.")
-                time.sleep(0.4)
-                pipeline.update(label="Arquitectura post-nativa lista.", state="complete", expanded=True)
+            col_trad, col_ia = st.columns(2)
+            with col_trad:
+                st.markdown("**Equipo Tradicional**")
+                placeholder_trad = st.empty()
+            with col_ia:
+                st.markdown("**Orquestación IA**")
+                placeholder_ia = st.empty()
+
+            lineas_trad: list[str] = []
+            lineas_ia: list[str] = []
+            for frame in range(1, 9):
+                if frame % 2 == 0 and len(lineas_trad) < len(cronograma) - 1:
+                    lineas_trad.append(cronograma[len(lineas_trad)])
+                    placeholder_trad.markdown("\n\n".join(lineas_trad) + "\n\n*(en progreso…)*")
+                if len(lineas_ia) < len(pipeline):
+                    lineas_ia.append(pipeline[len(lineas_ia)])
+                    cierre = "\n\n**Listo.**" if len(lineas_ia) == len(pipeline) else ""
+                    placeholder_ia.markdown("\n\n".join(lineas_ia) + cierre)
+                time.sleep(0.35)
 
             col_e, col_f = st.columns(2)
             with col_e:

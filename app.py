@@ -13,11 +13,15 @@ import random
 import re
 import time
 
+import qrcode
 import streamlit as st
 
 st.set_page_config(page_title="Simulador de Evolución", layout="centered")
 
 LOGO_PATH = os.path.join(os.path.dirname(__file__), "bculinary_logo.png")
+
+# TODO: confirmar esta URL una vez completado el deploy en Streamlit Community Cloud.
+APP_URL = "https://simulador-evolucion-ia.streamlit.app"
 
 # Tipografía institucional (Oswald), acorde a la identidad de Basque Culinary Center.
 # Streamlit fija font-family con reglas de mayor especificidad (".st-emotion-cache-xxx h1", etc.),
@@ -151,6 +155,15 @@ def coincide_publico_objetivo(texto: str) -> bool:
 st.image(LOGO_PATH, width=110)
 st.title("Simulador de Evolución")
 st.caption("Del ensayo físico en el laboratorio a la orquestación de sistemas por IA.")
+
+with st.expander("Abrí esta app en tu celular", expanded=True):
+    col_qr, col_link = st.columns([1, 2])
+    with col_qr:
+        qr_img = qrcode.make(APP_URL, border=2).convert("RGB")
+        st.image(qr_img, width=160)
+    with col_link:
+        st.markdown(f"**{APP_URL}**")
+        st.caption("Escaneá el código o entrá al link para seguir la dinámica desde tu teléfono.")
 
 tab1, tab2 = st.tabs(["2022 — Lab NotCo", "Hoy — Orquestación de Agentes IA"])
 

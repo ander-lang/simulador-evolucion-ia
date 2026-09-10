@@ -7,6 +7,7 @@ como semilla de `random`, así la misma entrada produce siempre el mismo
 resultado (ilusión de modelo determinista).
 """
 
+import difflib
 import os
 import random
 import re
@@ -78,6 +79,41 @@ def es_entrada_valida(texto: str) -> bool:
     return True
 
 
+# Base de conocimiento cerrada para el Tab 1: "parece una palabra" (es_entrada_valida) no alcanza,
+# porque dos palabras reales pero sin relación (ej. "banana" + "amor") también la pasarían y el
+# modelo igual devolvería un resultado con apariencia científica. Solo semillas y enzimas reales
+# de hidrólisis proteica cuentan como reconocidas; se admite tolerancia a errores de tipeo.
+MATERIAS_PRIMAS_VALIDAS = [
+    "cucurbita pepo", "calabaza", "zapallo",
+    "glycine max", "soja", "soya",
+    "pisum sativum", "arveja", "guisante",
+    "cicer arietinum", "garbanzo",
+    "lens culinaris", "lenteja",
+    "helianthus annuus", "girasol",
+    "triticum aestivum", "trigo",
+    "zea mays", "maiz", "maíz",
+    "avena sativa", "avena",
+    "phaseolus vulgaris", "poroto", "frijol", "frejol",
+    "chenopodium quinoa", "quinoa",
+    "salvia hispanica", "chia", "chía",
+    "lupinus albus", "lupino", "altramuz",
+]
+
+ENZIMAS_VALIDAS = [
+    "alcalase", "flavourzyme", "bromelina", "papaina", "papaína",
+    "pepsina", "tripsina", "neutrase", "protamex",
+    "quimotripsina", "subtilisina",
+]
+
+
+def coincide_base_conocimiento(texto: str, base: list[str]) -> bool:
+    """Compara contra la base cerrada, con tolerancia a typos (no requiere match exacto)."""
+    t = texto.strip().lower()
+    if t in base:
+        return True
+    return bool(difflib.get_close_matches(t, base, n=1, cutoff=0.82))
+
+
 st.image(LOGO_PATH, width=110)
 st.title("Simulador de Evolución")
 st.caption("Del ensayo físico en el laboratorio a la orquestación de sistemas por IA.")
@@ -103,10 +139,13 @@ with tab1:
     if st.button("Simular Trial Físico"):
         if not materia_prima.strip() or not enzima.strip():
             st.warning("Completa ambos campos antes de simular el trial.")
-        elif not es_entrada_valida(materia_prima) or not es_entrada_valida(enzima):
+        elif not coincide_base_conocimiento(materia_prima, MATERIAS_PRIMAS_VALIDAS) or not coincide_base_conocimiento(
+            enzima, ENZIMAS_VALIDAS
+        ):
             st.error(
-                "El modelo no reconoce esta entrada como un nombre de materia prima o enzima "
-                "válido y descarta el trial sin generar una predicción."
+                "El modelo no reconoce esta combinación en su base de conocimiento (semillas y "
+                "enzimas de hidrólisis proteica) y descarta el trial sin generar una predicción. "
+                "Probá con un ejemplo real, como Cucurbita pepo + Alcalase."
             )
         else:
             seed_from_inputs(materia_prima, enzima)

@@ -114,6 +114,40 @@ def coincide_base_conocimiento(texto: str, base: list[str]) -> bool:
     return bool(difflib.get_close_matches(t, base, n=1, cutoff=0.82))
 
 
+# Misma lógica que en el Tab 1: "Público Objetivo" es un dominio acotado (segmentos de
+# audiencia reales), así que se valida contra una base cerrada en vez del chequeo liviano.
+# "Concepto de la App" queda con es_entrada_valida porque, a propósito, admite cualquier idea
+# de producto — restringirlo a una lista cerrada rompería el punto de la dinámica.
+PUBLICOS_VALIDOS = [
+    "mascotas", "perros", "gatos",
+    "ninos", "niños", "adolescentes", "jovenes", "jóvenes", "universitarios", "estudiantes",
+    "adultos mayores", "ancianos", "jubilados",
+    "familias", "padres", "madres",
+    "deportistas", "runners", "ciclistas", "gamers",
+    "emprendedores", "freelancers", "profesionales", "empresas", "pymes", "startups",
+    "turistas", "viajeros",
+    "musicos", "músicos", "artistas", "fotografos", "fotógrafos", "disenadores", "diseñadores",
+    "programadores", "ingenieros", "cientificos", "científicos", "investigadores",
+    "profesores", "docentes", "maestros",
+    "medicos", "médicos", "enfermeros", "pacientes",
+    "agricultores", "chefs", "cocineros",
+    "vegetarianos", "veganos",
+    "comerciantes", "vendedores", "consumidores", "clientes", "usuarios",
+]
+
+
+def coincide_publico_objetivo(texto: str) -> bool:
+    """
+    Igual que coincide_base_conocimiento, pero también acepta coincidencias parciales
+    (ej. "amantes de los perros") porque las audiencias suelen describirse con frases cortas.
+    """
+    t = texto.strip().lower()
+    palabras = re.findall(r"[a-záéíóúñ]+", t)
+    return any(coincide_base_conocimiento(p, PUBLICOS_VALIDOS) for p in palabras) or coincide_base_conocimiento(
+        t, PUBLICOS_VALIDOS
+    )
+
+
 st.image(LOGO_PATH, width=110)
 st.title("Simulador de Evolución")
 st.caption("Del ensayo físico en el laboratorio a la orquestación de sistemas por IA.")
@@ -196,10 +230,16 @@ with tab2:
     if st.button("Orquestar Agentes IA"):
         if not concepto.strip() or not publico.strip():
             st.warning("Completa ambos campos antes de orquestar los agentes.")
-        elif not es_entrada_valida(concepto) or not es_entrada_valida(publico):
+        elif not es_entrada_valida(concepto):
             st.error(
-                "El modelo no reconoce esta entrada como un concepto de producto o público "
-                "objetivo válido y detiene la orquestación antes de asignar agentes."
+                "El modelo no reconoce esta entrada como un concepto de producto válido y "
+                "detiene la orquestación antes de asignar agentes."
+            )
+        elif not coincide_publico_objetivo(publico):
+            st.error(
+                "El modelo no reconoce este público objetivo en su base de segmentos de "
+                "audiencia y detiene la orquestación antes de asignar agentes. "
+                "Probá con un ejemplo real, como Mascotas o Estudiantes."
             )
         else:
             seed_from_inputs(concepto, publico)

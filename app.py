@@ -361,7 +361,7 @@ with tab2:
     with st.form("orquestacion_form"):
         col_c, col_d = st.columns(2)
         with col_c:
-            concepto = st.text_input("Concepto de la App (ej. Tinder)", key="concepto")
+            concepto = st.text_input("Concepto de la App (ej. Duolingo)", key="concepto")
         with col_d:
             publico = st.text_input("Público Objetivo (ej. Mascotas)", key="publico")
 

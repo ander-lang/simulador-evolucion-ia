@@ -20,8 +20,7 @@ st.set_page_config(page_title="Simulador de Evolución", layout="centered")
 
 LOGO_PATH = os.path.join(os.path.dirname(__file__), "bculinary_logo.png")
 
-# TODO: confirmar esta URL una vez completado el deploy en Streamlit Community Cloud.
-APP_URL = "https://simulador-evolucion-ia.streamlit.app"
+APP_URL = "https://bcc-app.streamlit.app"
 
 # Tipografía institucional (Oswald), acorde a la identidad de Basque Culinary Center.
 # Streamlit fija font-family con reglas de mayor especificidad (".st-emotion-cache-xxx h1", etc.),
